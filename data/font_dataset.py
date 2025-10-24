@@ -9,7 +9,15 @@ import random
 class FontDataset(BaseDataset):
     @staticmethod
     def modify_commandline_options(parser, is_train):
+        """Add new dataset-specific options, and rewrite default values for existing options.
 
+        Parameters:
+            parser          -- original option parser
+            is_train (bool) -- whether training phase or test phase. You can use this flag to add training-specific or test-specific options.
+
+        Returns:
+            the modified parser.
+        """
         parser.add_argument('--style_channel', type=int, default=6, help='# of style channels')
         parser.set_defaults(load_size=64, num_threads=4, display_winsize=64)
         if is_train:
@@ -17,6 +25,11 @@ class FontDataset(BaseDataset):
         return parser
     
     def __init__(self, opt):
+        """Initialize this dataset class.
+
+        Parameters:
+            opt (Option class) -- stores all the experiment flags; needs to be a subclass of BaseOptions
+        """
         if opt.direction=="english2chinese":
             self.content_language = 'chinese'
             self.style_language = 'english'
@@ -24,7 +37,7 @@ class FontDataset(BaseDataset):
             self.content_language = 'english'
             self.style_language = 'chinese'
         BaseDataset.__init__(self, opt)
-        self.dataroot = os.path.join(opt.dataroot, opt.phase, self.content_language)  # get the image directory
+        self.dataroot = os.path.join(opt.dataroot, self.content_language)  # get the image directory
         self.paths = sorted(make_dataset(self.dataroot, opt.max_dataset_size))  # get image paths
         self.style_channel = opt.style_channel
         self.transform = transforms.Compose([transforms.ToTensor(),
@@ -32,7 +45,7 @@ class FontDataset(BaseDataset):
         self.img_size = opt.load_size
         
     def __getitem__(self, index):
-        # get content path and corresbonding style paths
+        # get content path and corresbonding stlye paths
         gt_path = self.paths[index]
         parts = gt_path.split(os.sep)
         style_paths = self.get_style_paths(parts)
@@ -45,7 +58,7 @@ class FontDataset(BaseDataset):
                 'style_image_paths':style_paths, 'image_paths':gt_path}
     
     def __len__(self):
-
+        """Return the total number of images in the dataset."""
         return len(self.paths)
     
     def load_image(self, path):
@@ -54,9 +67,16 @@ class FontDataset(BaseDataset):
         return image
         
     def get_style_paths(self, parts):
-        english_font_path = os.path.join(parts[0], parts[1], parts[2], parts[3], self.style_language, parts[5])
-        english_paths = [os.path.join(english_font_path, letter) for letter in random.sample(os.listdir(english_font_path), self.style_channel)]
-        return english_paths
-    
+        style_dir = os.path.join(os.path.dirname(self.dataroot), self.style_language)
+        all_files = []
+        for root, _, files in os.walk(style_dir):
+            for f in files:
+                if f.endswith(('.png', '.jpg', '.jpeg')):
+                    all_files.append(os.path.join(root, f))
+        chosen = random.sample(all_files, self.style_channel)
+        return chosen
+
+
     def get_content_path(self, parts):
-        return os.path.join(parts[0], parts[1], parts[2], parts[3], 'source', parts[-1])
+        content_dir = os.path.join(os.path.dirname(self.dataroot), 'source')
+        return os.path.join(content_dir, os.path.basename(parts[-1]))
