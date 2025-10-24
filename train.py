@@ -22,7 +22,7 @@ if __name__ == '__main__':
         wandb.login()  
         wandb.init(
             project=opt.name,   # tên project, ví dụ 'FontDiffuser'
-            name=f"run_{time.strftime('FCAGAN%m/%d_%H:%M')}",  # tên run duy nhất
+            name=f"run_{time.strftime('FCAGAN - %d%m/_%H:%M')}",  # tên run duy nhất
             config=vars(opt)
         )
 
@@ -70,6 +70,13 @@ if __name__ == '__main__':
                     losses = model.get_current_losses()
                     t_comp = (time.time() - iter_start_time) / opt.batch_size
                     visualizer.print_current_losses(epoch, epoch_iter, losses, t_comp, t_data)
+                    # DEBUG (wandb log)
+                    if opt.use_wandb:
+                        wandb.log(
+                            {**losses, "epoch": epoch, "total_iters": total_iters},
+                            step=total_iters
+                        )
+                    ###
                     if opt.display_id > 0:
                         visualizer.plot_current_losses(epoch, float(epoch_iter) / dataset_size, losses)
 
