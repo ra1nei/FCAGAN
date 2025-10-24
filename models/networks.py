@@ -150,7 +150,7 @@ class FCA(nn.Module):
         
 class FCA_Atten(nn.Module):
     def   __init__(self, ngf=64):
-        super(FCA_Local_Atten, self).__init__() 
+        super(FCA_Layer_Atten, self).__init__() 
         self.self_atten = FCA_attention_module(ngf*4)
         self.attention = nn.Linear(ngf*4, 100)
         self.context_vec = nn.Linear(100, 1, bias=False)
