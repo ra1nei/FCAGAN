@@ -4,7 +4,7 @@ from data import create_dataset
 from models import create_model
 from util.visualizer import Visualizer
 from tqdm import tqdm
-import torch
+import torch, wandb
 
 if __name__ == '__main__':
     opt = TrainOptions().parse()   # get training options
@@ -37,11 +37,25 @@ if __name__ == '__main__':
                 model.optimize_parameters()
 
                 # Visualization
-                if total_iters % opt.display_freq == 0:
-                    save_result = total_iters % opt.update_html_freq == 0
-                    model.compute_visuals()
-                    visualizer.display_current_results(model.get_current_visuals(), epoch, save_result)
+                # if total_iters % opt.display_freq == 0:
+                #     save_result = total_iters % opt.update_html_freq == 0
+                #     model.compute_visuals()
+                #     visualizer.display_current_results(model.get_current_visuals(), epoch, save_result)
 
+                # WanDB
+                if opt.use_wandb and total_iters % opt.display_freq == 0:
+                    model.compute_visuals()
+                    visuals = model.get_current_visuals()
+                    images = []
+                    for label, image in visuals.items():
+                        # convert tensor -> wandb.Image safely
+                        if torch.is_tensor(image):
+                            image = image.detach().cpu()
+                            if image.ndim == 3 and image.shape[0] in [1, 3]:  # (C,H,W)
+                                images.append(wandb.Image(image, caption=label))
+                    if images:
+                        wandb.log({"visuals": images, "epoch": epoch, "total_iters": total_iters})
+                        
                 # Logging
                 if total_iters % opt.print_freq == 0:
                     losses = model.get_current_losses()
@@ -50,7 +64,7 @@ if __name__ == '__main__':
                     if opt.display_id > 0:
                         visualizer.plot_current_losses(epoch, float(epoch_iter) / dataset_size, losses)
 
-                # Save latest model 
+                # Save latest model
                 if total_iters % opt.save_latest_freq == 0:
                     print(f'\nSaving the latest model (epoch {epoch}, total_iters {total_iters})')
                     save_suffix = f'iter_{total_iters}' if opt.save_by_iter else 'latest'
@@ -59,12 +73,12 @@ if __name__ == '__main__':
                 iter_data_time = time.time()
                 pbar.update(opt.batch_size)  # update the progress bar
 
-        # Save model at epoch end 
+        # Save model at epoch end
         if epoch % opt.save_epoch_freq == 0:
             print(f'\nSaving the model at the end of epoch {epoch}, iters {total_iters}')
             model.save_networks('latest')
             model.save_networks(epoch)
 
-        # Epoch summary 
+        # Epoch summary
         print(f'End of epoch {epoch} / {opt.n_epochs + opt.n_epochs_decay}\t Time Taken: {time.time() - epoch_start_time:.1f} sec')
         model.update_learning_rate()
