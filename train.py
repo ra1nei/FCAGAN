@@ -37,10 +37,10 @@ if __name__ == '__main__':
                 model.optimize_parameters()
 
                 # Visualization
-                # if total_iters % opt.display_freq == 0:
-                #     save_result = total_iters % opt.update_html_freq == 0
-                #     model.compute_visuals()
-                #     visualizer.display_current_results(model.get_current_visuals(), epoch, save_result)
+                if total_iters % opt.display_freq == 0:
+                    save_result = total_iters % opt.update_html_freq == 0
+                    model.compute_visuals()
+                    visualizer.display_current_results(model.get_current_visuals(), epoch, save_result)
 
                 # WanDB
                 if opt.use_wandb and total_iters % opt.display_freq == 0:
