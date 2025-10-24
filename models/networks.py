@@ -426,7 +426,7 @@ class ResnetGenerator(nn.Module):
         
         return self.model(torch.cat(inp, dim=1))
 
-class ResnetBlock(nn.Module)
+class ResnetBlock(nn.Module):
 
     def __init__(self, dim, padding_type, norm_layer, use_dropout, use_bias):
        
