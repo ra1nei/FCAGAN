@@ -323,14 +323,30 @@ class GANLoss(nn.Module):
         return target_tensor.expand_as(prediction)
 
     def __call__(self, prediction, target_is_real , train_gen=False):
+        if isinstance(prediction, (list, tuple)):
+            loss = 0
+            for p in prediction:
+                loss += self.__call__(p, target_is_real, train_gen)
+            return loss / len(prediction)
+
         if self.gan_mode in ['lsgan', 'vanilla']:
             target_tensor = self.get_target_tensor(prediction, target_is_real)
             loss = self.loss(prediction, target_tensor)
-        elif self.gan_mode in ['hinge', 'hinge2']:
+
+        elif self.gan_mode == 'wgangp':
             if target_is_real:
-                loss = torch.nn.ReLU()(1.0 - prediction).mean()
+                loss = -prediction.mean()
             else:
-                loss = torch.nn.ReLU()(1.0 + prediction).mean()
+                loss = prediction.mean()
+
+        elif self.gan_mode in ['hinge', 'hinge2']:
+            if train_gen:
+                loss = -prediction.mean()
+            else:
+                if target_is_real:
+                    loss = torch.nn.ReLU()(1.0 - prediction).mean()
+                else:
+                    loss = torch.nn.ReLU()(1.0 + prediction).mean()
         elif self.gan_mode == 'smoth——hinge2':
             if train_gen:
                 loss1 = -prediction[1].mean()
