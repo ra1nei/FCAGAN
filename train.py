@@ -17,6 +17,15 @@ if __name__ == '__main__':
     visualizer = Visualizer(opt)
     total_iters = 0
 
+    # WanDB setup
+    if opt.use_wandb:
+        wandb.login()  
+        wandb.init(
+            project=opt.name,   # tên project, ví dụ 'FontDiffuser'
+            name=f"run_{time.strftime('FCAGAN%m/%d_%H:%M')}",  # tên run duy nhất
+            config=vars(opt)
+        )
+
     for epoch in range(opt.epoch_count, opt.n_epochs + opt.n_epochs_decay + 1):
         epoch_start_time = time.time()
         iter_data_time = time.time()
