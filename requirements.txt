@@ -1,4 +1,3 @@
-pytorch>=1.7
 torchvision
 dominate
 visdom
