@@ -137,6 +137,15 @@ class BaseModel(ABC):
                     net.cuda(self.gpu_ids[0])
                 else:
                     torch.save(net.cpu().state_dict(), save_path)
+        
+        meta = {
+            'epoch': epoch,
+            'total_iters': getattr(self, 'total_iters', 0),
+            'optimizer_G': self.optimizer_G.state_dict() if hasattr(self, 'optimizer_G') else None,
+            'optimizer_D_style': self.optimizer_D_style.state_dict() if hasattr(self, 'optimizer_D_style') else None,
+            'optimizer_D_content': self.optimizer_D_content.state_dict() if hasattr(self, 'optimizer_D_content') else None,
+        }
+        torch.save(meta, os.path.join(self.save_dir, f'{epoch}_meta.pth'))
 
     def __patch_instance_norm_state_dict(self, state_dict, module, keys, i=0):
         """Fix InstanceNorm checkpoints incompatibility (prior to 0.4)"""

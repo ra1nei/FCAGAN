@@ -32,7 +32,17 @@ if __name__ == '__main__':
                 print(f"Missing {ckpt_path}")
 
     visualizer = Visualizer(opt)
-    total_iters = 0
+    
+    # ===== Resume from latest checkpoint if exists =====
+    meta_path = os.path.join(opt.pretrain_dir, 'latest_meta.pth')
+    if os.path.exists(meta_path):
+        meta = torch.load(meta_path, map_location=model.device)
+        start_epoch = meta.get('epoch', opt.epoch_count)
+        total_iters = meta.get('total_iters', 0)
+        print(f"✅ Resumed from epoch {start_epoch}, total_iters {total_iters}")
+    else:
+        start_epoch = opt.epoch_count
+        total_iters = 0
 
     # =============== WandB setup ===============
     if opt.use_wandb:
@@ -44,7 +54,7 @@ if __name__ == '__main__':
         )
 
     # =============== Training Loop ===============
-    for epoch in range(opt.epoch_count, opt.n_epochs + opt.n_epochs_decay + 1):
+    for epoch in range(start_epoch, opt.n_epochs + opt.n_epochs_decay + 1):
         epoch_start_time = time.time()
         iter_data_time = time.time()
         epoch_iter = 0
@@ -102,6 +112,11 @@ if __name__ == '__main__':
                     suffix = f'iter_{total_iters}' if opt.save_by_iter else 'latest'
                     model.save_networks(suffix)
 
+                    meta = {
+                        'epoch': epoch,
+                        'total_iters': total_iters,
+                    }
+                    torch.save(meta, os.path.join(model.save_dir, 'latest_meta.pth'))
                 iter_data_time = time.time()
                 pbar.update(opt.batch_size)
 
