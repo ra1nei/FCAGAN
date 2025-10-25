@@ -34,7 +34,7 @@ if __name__ == '__main__':
     visualizer = Visualizer(opt)
     
     # ===== Resume from latest checkpoint if exists =====
-    meta_path = os.path.join(opt.pretrain_dir, 'latest_meta.pth')
+    meta_path = os.path.join(opt.pretrained_dir, 'latest_meta.pth')
     if os.path.exists(meta_path):
         meta = torch.load(meta_path, map_location=model.device)
         start_epoch = meta.get('epoch', opt.epoch_count)
