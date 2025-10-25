@@ -16,10 +16,10 @@ if __name__ == '__main__':
     model.setup(opt)
     
     # =============== Load pretrained model via folder ===============
-    if hasattr(opt, 'pretrain_dir') and opt.pretrain_dir and os.path.isdir(opt.pretrain_dir):
-        print(f"🔄 Loading pretrained model from: {opt.pretrain_dir}")
+    if hasattr(opt, 'pretrained_dir') and opt.pretrained_dir and os.path.isdir(opt.pretrained_dir):
+        print(f"🔄 Loading pretrained model from: {opt.pretrained_dir}")
         for name in ['G', 'D']:
-            ckpt_path = os.path.join(opt.pretrain_dir, f'latest_net_{name}.pth')
+            ckpt_path = os.path.join(opt.pretrained_dir, f'latest_net_{name}.pth')
             if os.path.exists(ckpt_path):
                 try:
                     net = getattr(model, f'net{name}')
