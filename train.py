@@ -18,7 +18,7 @@ if __name__ == '__main__':
     # =============== Load pretrained model via folder ===============
     if hasattr(opt, 'pretrained_dir') and opt.pretrained_dir and os.path.isdir(opt.pretrained_dir):
         print(f"🔄 Loading pretrained model from: {opt.pretrained_dir}")
-        for name in ['G', 'D']:
+        for name in ['G', 'D_style', 'D_content']:
             ckpt_path = os.path.join(opt.pretrained_dir, f'latest_net_{name}.pth')
             if os.path.exists(ckpt_path):
                 try:
