@@ -177,6 +177,31 @@ class BaseModel(ABC):
                     self.__patch_instance_norm_state_dict(state_dict, net, key.split('.'))
                 net.load_state_dict(state_dict)
 
+    def load_networks(self, epoch):
+        """Load all the networks from a directory (supports custom pretrained_dir)."""
+        for name in self.model_names:
+            if isinstance(name, str):
+                load_filename = f"{epoch}_net_{name}.pth"
+
+                # 🔹 Nếu có opt.pretrained_dir → dùng nó, không thì dùng self.save_dir
+                if hasattr(self.opt, 'pretrained_dir') and os.path.exists(self.opt.pretrained_dir):
+                    load_path = os.path.join(self.opt.pretrained_dir, load_filename)
+                else:
+                    load_path = os.path.join(self.save_dir, load_filename)
+
+                net = getattr(self, 'net' + name)
+                if isinstance(net, torch.nn.DataParallel):
+                    net = net.module
+                print(f"loading the model from {load_path}")
+
+                state_dict = torch.load(load_path, map_location=str(self.device))
+                if hasattr(state_dict, '_metadata'):
+                    del state_dict._metadata
+
+                for key in list(state_dict.keys()):
+                    self.__patch_instance_norm_state_dict(state_dict, net, key.split('.'))
+                net.load_state_dict(state_dict)
+
     def print_networks(self, verbose):
         """Print the total number of parameters in the network and (if verbose) network architecture
 

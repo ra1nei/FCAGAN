@@ -4,7 +4,7 @@ from data import create_dataset
 from models import create_model
 from util.visualizer import Visualizer
 from tqdm import tqdm
-import torch, wandb
+import torch, wandb, os
 
 if __name__ == '__main__':
     opt = TrainOptions().parse()
@@ -14,6 +14,23 @@ if __name__ == '__main__':
 
     model = create_model(opt)
     model.setup(opt)
+    
+    # =============== Load pretrained model via folder ===============
+    if hasattr(opt, 'pretrain_dir') and opt.pretrain_dir and os.path.isdir(opt.pretrain_dir):
+        print(f"🔄 Loading pretrained model from: {opt.pretrain_dir}")
+        for name in ['G', 'D']:
+            ckpt_path = os.path.join(opt.pretrain_dir, f'latest_net_{name}.pth')
+            if os.path.exists(ckpt_path):
+                try:
+                    net = getattr(model, f'net{name}')
+                    state_dict = torch.load(ckpt_path, map_location=model.device)
+                    net.load_state_dict(state_dict, strict=False)
+                    print(f"✅ Loaded {ckpt_path}")
+                except Exception as e:
+                    print(f"Could not load {ckpt_path}: {e}")
+            else:
+                print(f"Missing {ckpt_path}")
+
     visualizer = Visualizer(opt)
     total_iters = 0
 

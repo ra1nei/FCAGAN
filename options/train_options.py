@@ -34,6 +34,8 @@ class TrainOptions(BaseOptions):
         parser.add_argument('--use_wandb', action='store_true', help='use Weights & Biases for logging')
         parser.add_argument('--wandb_project', type=str, default='font_translator_gan', help='wandb project name')
         parser.add_argument('--wandb_run_name', type=str, default='', help='optional run name for wandb')
-
+        # load pretrained ckpt folder
+        # load custom-pretrained models
+        parser.add_argument('--pretrained_dir', type=str, default='', help='path to directory containing pretrained checkpoints (e.g., /kaggle/input/font-translator-gan-ckpt)')
         self.isTrain = True
         return parser
