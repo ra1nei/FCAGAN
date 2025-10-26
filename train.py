@@ -53,6 +53,8 @@ if __name__ == '__main__':
             config=vars(opt)
         )
 
+    ## DEBUG
+    print(start_epoch, type(start_epoch))
     # =============== Training Loop ===============
     for epoch in range(start_epoch, opt.n_epochs + opt.n_epochs_decay + 1):
         epoch_start_time = time.time()
