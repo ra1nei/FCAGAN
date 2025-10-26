@@ -53,11 +53,6 @@ if __name__ == '__main__':
             config=vars(opt)
         )
 
-    ## DEBUG
-    print("DEBUG")
-    print(meta.get('epoch', opt.epoch_count))
-    print(meta.get('total_iters', 0))
-    print(start_epoch, type(start_epoch))
     # =============== Training Loop ===============
     for epoch in range(start_epoch, opt.n_epochs + opt.n_epochs_decay + 1):
         epoch_start_time = time.time()
@@ -74,6 +69,8 @@ if __name__ == '__main__':
                 total_iters += opt.batch_size
                 epoch_iter += opt.batch_size
 
+                ## DEBUG
+                print(total_iters)
                 # =============== Forward + Backward ===============
                 model.set_input(data)
                 model.optimize_parameters()
