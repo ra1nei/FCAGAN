@@ -53,29 +53,17 @@ if __name__ == '__main__':
             config=vars(opt)
         )
 
-    # =============== Training Loop ===============
-    for epoch in range(start_epoch, opt.n_epochs + opt.n_epochs_decay + 1):
-        epoch_start_time = time.time()
-        iter_data_time = time.time()
-        epoch_iter = 0
-        visualizer.reset()
-        
-        iters_per_epoch = math.ceil(dataset_size / opt.batch_size)
-        iters_in_epoch = (total_iters // opt.batch_size) % iters_per_epoch
-        initial_samples = iters_in_epoch * opt.batch_size
+    # =============== Global tqdm (one bar for all epochs) ===============
+    total_steps = (opt.n_epochs + opt.n_epochs_decay) * dataset_size
+    with tqdm(total=total_steps, initial=total_iters, desc="Training Progress", ncols=100) as pbar:
+        # ===== Training Loop =====
+        for epoch in range(start_epoch, opt.n_epochs + opt.n_epochs_decay + 1):
+            epoch_start_time = time.time()
+            iter_data_time = time.time()
+            epoch_iter = 0
+            visualizer.reset()
 
-
-        total_steps = (opt.n_epochs + opt.n_epochs_decay) * dataset_size
-        with tqdm(
-            total=dataset_size,
-            initial=initial_samples,
-            desc=f"Epoch [{epoch}/{opt.n_epochs + opt.n_epochs_decay}]",
-            ncols=100
-        ) as pbar:
             for i, data in enumerate(dataset):
-                # Nếu resume ở giữa epoch, skip các batch cũ
-                if i < iters_in_epoch:
-                    continue  
                 iter_start_time = time.time()
                 if total_iters % opt.print_freq == 0:
                     t_data = iter_start_time - iter_data_time
@@ -91,7 +79,7 @@ if __name__ == '__main__':
                 if total_iters % opt.print_freq == 0:
                     losses = model.get_current_losses()
                     t_comp = (time.time() - iter_start_time) / opt.batch_size
-                    visualizer.print_current_losses(epoch, epoch_iter, losses, t_comp)
+                    visualizer.print_current_losses(epoch, epoch_iter, losses, t_comp, t_data)
                     if opt.display_id > 0:
                         visualizer.plot_current_losses(epoch, float(epoch_iter) / dataset_size, losses)
 
@@ -125,22 +113,19 @@ if __name__ == '__main__':
                     print(f'\nSaving latest model (epoch {epoch}, total_iters {total_iters})')
                     suffix = f'iter_{total_iters}' if opt.save_by_iter else 'latest'
                     model.save_networks(suffix)
-
-                    meta = {
-                        'epoch': epoch,
-                        'total_iters': total_iters,
-                    }
+                    meta = {'epoch': epoch, 'total_iters': total_iters}
                     torch.save(meta, os.path.join(model.save_dir, 'latest_meta.pth'))
+
                 iter_data_time = time.time()
                 pbar.update(opt.batch_size)
 
-        # =============== End of epoch checkpoint ===============
-        if epoch % opt.save_epoch_freq == 0:
-            print(f'\nSaving model at end of epoch {epoch} (iters {total_iters})')
-            model.save_networks('latest')
-            model.save_networks(epoch)
+            # =============== End of epoch checkpoint ===============
+            if epoch % opt.save_epoch_freq == 0:
+                print(f'\nSaving model at end of epoch {epoch} (iters {total_iters})')
+                model.save_networks('latest')
+                model.save_networks(epoch)
 
-        # =============== End of epoch summary ===============
-        epoch_time = time.time() - epoch_start_time
-        print(f'End of epoch {epoch}/{opt.n_epochs + opt.n_epochs_decay}\tTime Taken: {epoch_time:.1f} sec')
-        model.update_learning_rate()
+            # =============== End of epoch summary ===============
+            epoch_time = time.time() - epoch_start_time
+            print(f'End of epoch {epoch}/{opt.n_epochs + opt.n_epochs_decay}\tTime Taken: {epoch_time:.1f} sec')
+            model.update_learning_rate()
