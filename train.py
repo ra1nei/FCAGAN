@@ -4,7 +4,7 @@ from data import create_dataset
 from models import create_model
 from util.visualizer import Visualizer
 from tqdm import tqdm
-import torch, wandb, os
+import torch, wandb, os, math
 
 if __name__ == '__main__':
     opt = TrainOptions().parse()
@@ -59,9 +59,23 @@ if __name__ == '__main__':
         iter_data_time = time.time()
         epoch_iter = 0
         visualizer.reset()
+        
+        iters_per_epoch = math.ceil(dataset_size / opt.batch_size)
+        iters_in_epoch = (total_iters // opt.batch_size) % iters_per_epoch
+        initial_samples = iters_in_epoch * opt.batch_size
 
-        with tqdm(total=dataset_size, desc=f"Epoch [{epoch}/{opt.n_epochs + opt.n_epochs_decay}]", ncols=100) as pbar:
+
+        total_steps = (opt.n_epochs + opt.n_epochs_decay) * dataset_size
+        with tqdm(
+            total=dataset_size,
+            initial=initial_samples,
+            desc=f"Epoch [{epoch}/{opt.n_epochs + opt.n_epochs_decay}]",
+            ncols=100
+        ) as pbar:
             for i, data in enumerate(dataset):
+                # Nếu resume ở giữa epoch, skip các batch cũ
+                if i < iters_in_epoch:
+                    continue  
                 iter_start_time = time.time()
                 if total_iters % opt.print_freq == 0:
                     t_data = iter_start_time - iter_data_time
