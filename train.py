@@ -58,6 +58,7 @@ if __name__ == '__main__':
     with tqdm(total=total_steps, initial=total_iters, desc="Training Progress", ncols=100) as pbar:
         # ===== Training Loop =====
         for epoch in range(start_epoch, opt.n_epochs + opt.n_epochs_decay + 1):
+            t_data = 0.0
             epoch_start_time = time.time()
             iter_data_time = time.time()
             epoch_iter = 0
