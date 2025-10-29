@@ -6,10 +6,10 @@ from PIL import Image
 
 class ClassifierDataset(Dataset):
     def __init__(self, mode):   
-        path_chinese1 = 'datasets/font/train/chinese'
-        path_english1 = 'datasets/font/train/english'
-        path_chinese2 = 'datasets/font/test_unknown_style/chinese'
-        path_english2 = 'datasets/font/test_unknown_style/english'
+        path_chinese1 = './my_data/train/chinese'
+        path_english1 = './my_data/train/english'
+        path_chinese2 = './my_data/test_unknown_style/chinese'
+        path_english2 = './my_data/test_unknown_style/english'
         path_chinese3 = 'datasets/font/test_unknown_content/chinese'
         roots = [path_chinese1, path_english1, path_chinese2, path_english2, path_chinese3]         
         if mode=='style': # build a style classifier
