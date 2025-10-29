@@ -10,7 +10,7 @@ class ClassifierDataset(Dataset):
         path_english1 = './my_data/train/english'
         path_chinese2 = './my_data/test_unknown_style/chinese'
         path_english2 = './my_data/test_unknown_style/english'
-        path_chinese3 = 'datasets/font/test_unknown_content/chinese'
+        path_chinese3 = './my_data/test_unknown_content/chinese'
         roots = [path_chinese1, path_english1, path_chinese2, path_english2, path_chinese3]         
         if mode=='style': # build a style classifier
             part = -2     # choose which part as label
